@@ -1,0 +1,841 @@
+index.html
+DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>ポチポンキチ∞ポチポチ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --night: #140a33;
+  --ink: #ffffff;
+  --pink: #ff3d8b;
+  --yellow: #ffe13a;
+  --cyan: #2ee6d6;
+  --violet: #8a5bff;
+  --font-display: "Dela Gothic One", "Hiragino Maru Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+  --font-body: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+*, *::before, *::after { box-sizing: border-box; }
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--night);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 700;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+body { position: relative; }
+
+#app {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  --bg1: #1c0c46;
+  --bg2: #3a1a8a;
+  overflow: hidden;
+}
+#app[data-stage="1"] { --bg1: #04304a; --bg2: #0d7a80; }
+#app[data-stage="2"] { --bg1: #3a0a3d; --bg2: #a1227a; }
+#app[data-stage="3"] { --bg1: #3d1205; --bg2: #d4500d; }
+#app[data-stage="4"] { --bg1: #1a0646; --bg2: #ff3d8b; }
+
+#bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 62%, var(--bg2) 0%, var(--bg1) 70%);
+}
+#app[data-stage="4"] #bg { animation: hue 6s linear infinite; }
+#app.rumble #bg { animation: hue 1.4s linear infinite; }
+@keyframes hue { to { filter: hue-rotate(360deg); } }
+
+#fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+#floats { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 6; }
+
+.info, .play {
+  position: relative; z-index: 2;
+  width: 100%;
+  max-width: 560px;
+  padding: 10px 14px 0;
+}
+.info { flex: 0 0 auto; }
+.play {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+  padding-bottom: 12px;
+}
+
+.top { display: flex; align-items: center; gap: 12px; }
+.lvl {
+  flex: 0 0 auto;
+  min-width: 84px;
+  background: var(--pink);
+  border: 3px solid var(--night);
+  border-radius: 18px;
+  box-shadow: 0 4px 0 var(--night);
+  text-align: center;
+  padding: 4px 10px 2px;
+  transform: rotate(-3deg);
+}
+.lvl small { display: block; font-size: 11px; letter-spacing: .05em; }
+.lvl b { font-family: var(--font-display); font-size: 30px; font-weight: 400; line-height: 1.05; }
+.xpwrap { flex: 1; min-width: 0; }
+.stage {
+  font-family: var(--font-display);
+  font-size: clamp(16px, 4.6vw, 24px);
+  line-height: 1.1;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  text-shadow: 0 3px 0 var(--night);
+}
+.xpbar { height: 16px; background: rgba(10, 4, 30, .6); border: 3px solid var(--night); border-radius: 10px; overflow: hidden; }
+.xpbar i { display: block; height: 100%; width: 0; background: var(--yellow); border-radius: 6px; }
+
+.title { margin: 8px 0 0; text-align: center; font-size: 12px; opacity: .75; }
+.count { text-align: center; padding: 0 4px; min-height: 76px; display: flex; align-items: center; justify-content: center; }
+#count {
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--yellow);
+  line-height: 1.05;
+  white-space: nowrap;
+  text-shadow: 0 5px 0 #b3004f, 0 0 28px rgba(255, 61, 139, .65);
+  font-variant-numeric: tabular-nums;
+}
+#count.bump { animation: bump .12s ease-out; }
+@keyframes bump { 0% { transform: scale(1.08); } 100% { transform: scale(1); } }
+
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.chip {
+  background: rgba(14, 6, 40, .6);
+  border: 2px solid rgba(255, 255, 255, .22);
+  border-radius: 12px;
+  padding: 5px 4px 4px;
+  text-align: center;
+  min-width: 0;
+}
+.chip span { display: block; font-size: 10px; opacity: .8; }
+.chip b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 20px; line-height: 1.15; overflow: hidden; white-space: nowrap; }
+.chip em { display: block; font-style: normal; font-size: 9px; opacity: .65; min-height: 11px; }
+.chip.combo b { color: var(--cyan); }
+.chip.mult b { color: var(--pink); }
+
+.padwrap {
+  position: relative;
+  width: min(74vw, 46vh, 380px);
+  aspect-ratio: 1;
+  flex: 0 1 auto;
+  margin: 8px 0;
+}
+.ring {
+  position: absolute; inset: -14px;
+  border-radius: 50%;
+  --p: 0;
+  background: conic-gradient(var(--cyan) calc(var(--p) * 1%), rgba(255, 255, 255, .12) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px));
+}
+#pon {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border: 6px solid var(--night);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #ff9ec4 0%, var(--pink) 38%, #c4005a 100%);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: clamp(54px, 17vw, 110px);
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 12px 0 #7d0036, 0 18px 32px rgba(0, 0, 0, .45), inset 0 -10px 0 rgba(0, 0, 0, .14);
+  text-shadow: 0 5px 0 #7d0036;
+  touch-action: manipulation;
+  outline: none;
+  transition: filter .2s;
+  padding: 0;
+}
+#pon:focus-visible { outline: 4px solid var(--cyan); outline-offset: 8px; }
+#pon.hot { filter: saturate(1.4) brightness(1.1); }
+
+#active { width: 100%; min-height: 52px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; align-content: flex-start; max-height: 108px; overflow: hidden; }
+.ev {
+  position: relative;
+  flex: 1 1 140px;
+  max-width: 220px;
+  background: rgba(14, 6, 40, .72);
+  border-left: 6px solid var(--c);
+  border-radius: 10px;
+  padding: 4px 8px 8px;
+  font-size: 13px;
+  overflow: hidden;
+}
+.ev b { color: var(--c); font-family: var(--font-display); font-weight: 400; font-size: 13px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ev span { font-size: 12px; }
+.ev i { position: absolute; left: 0; bottom: 0; height: 4px; width: 100%; background: var(--c); transform-origin: left; }
+
+.toggles { display: flex; gap: 8px; width: 100%; justify-content: center; margin-top: 8px; }
+.tg {
+  flex: 1 1 0; max-width: 150px;
+  min-height: 48px;
+  border: 3px solid var(--night);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .16);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--night);
+}
+.tg[aria-pressed="true"] { background: var(--yellow); color: var(--night); }
+.tg#turbo[aria-pressed="true"] { background: var(--cyan); }
+.tg:focus-visible { outline: 3px solid var(--cyan); outline-offset: 3px; }
+.tg:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--night); }
+
+.r0 { --c: var(--cyan); }
+.r1 { --c: var(--yellow); }
+.r2 { --c: var(--pink); }
+.r3 { --c: var(--pink); }
+.r3 .rn, .ev.r3 b { animation: hue 1.2s linear infinite; }
+
+#banner {
+  position: absolute; left: 0; right: 0; top: 24%;
+  z-index: 8;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  padding: 0 12px;
+}
+#banner.show { animation: bannerPop 2.4s ease-out forwards; }
+#banner .rl {
+  display: inline-block;
+  background: var(--c);
+  color: var(--night);
+  font-size: 15px;
+  padding: 2px 14px;
+  border-radius: 999px;
+  border: 3px solid var(--night);
+  margin-bottom: 6px;
+}
+#banner .rn {
+  display: block;
+  color: var(--c);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(32px, 10.5vw, 68px);
+  line-height: 1.08;
+  -webkit-text-stroke: 7px var(--night);
+  paint-order: stroke fill;
+  text-shadow: 0 6px 0 var(--night);
+}
+#banner .rs {
+  display: block;
+  margin-top: 6px;
+  font-size: clamp(14px, 4vw, 20px);
+  text-shadow: 0 2px 0 var(--night), 0 0 6px var(--night);
+}
+@keyframes bannerPop {
+  0% { opacity: 0; transform: scale(.3) rotate(-6deg); }
+  10% { opacity: 1; transform: scale(1.18) rotate(2deg); }
+  18% { transform: scale(1) rotate(0); }
+  82% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.06) translateY(-14px); }
+}
+
+#toast {
+  position: absolute; left: 0; right: 0; top: 118px;
+  z-index: 7;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 6vw, 30px);
+  color: #fff;
+  -webkit-text-stroke: 5px var(--night);
+  paint-order: stroke fill;
+  pointer-events: none;
+  opacity: 0;
+}
+#toast.show { animation: toastPop 1.3s ease-out forwards; }
+@keyframes toastPop {
+  0% { opacity: 0; transform: translateY(10px) scale(.7); }
+  15% { opacity: 1; transform: translateY(0) scale(1.1); }
+  25% { transform: scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-12px); }
+}
+
+#flash { position: absolute; inset: 0; z-index: 4; background: #fff; opacity: 0; pointer-events: none; }
+#flash.go { animation: flash .45s ease-out; }
+@keyframes flash { 0% { opacity: .5; } 100% { opacity: 0; } }
+
+.float {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: #fff;
+  -webkit-text-stroke: 5px var(--night);
+  paint-order: stroke fill;
+  white-space: nowrap;
+  animation: floatUp .85s ease-out forwards;
+}
+.float.big { font-size: clamp(30px, 9vw, 52px); color: var(--yellow); animation-duration: 1.5s; }
+@keyframes floatUp {
+  0% { opacity: 0; transform: translate(-50%, -30%) scale(.6); }
+  15% { opacity: 1; transform: translate(-50%, -80%) scale(1.1); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 0px)), -260%) scale(1); }
+}
+
+#app.shake1 .info, #app.shake1 .play { animation: shake 0.3s linear; }
+#app.shake2 .info, #app.shake2 .play { animation: shake2 0.5s linear; }
+#app.rumble .info, #app.rumble .play { animation: rumble .22s linear infinite; }
+@keyframes shake { 0%,100% { transform: translate(0,0); } 25% { transform: translate(-3px,2px); } 50% { transform: translate(3px,-2px); } 75% { transform: translate(-2px,-2px); } }
+@keyframes shake2 { 0%,100% { transform: translate(0,0) rotate(0); } 15% { transform: translate(-8px,5px) rotate(-.6deg); } 35% { transform: translate(7px,-6px) rotate(.6deg); } 55% { transform: translate(-6px,-4px) rotate(-.4deg); } 75% { transform: translate(5px,5px) rotate(.4deg); } }
+@keyframes rumble { 0%,100% { transform: translate(0,0); } 25% { transform: translate(-2px,1px); } 50% { transform: translate(2px,-1px); } 75% { transform: translate(-1px,-2px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  #app.shake1 .info, #app.shake1 .play, #app.shake2 .info, #app.shake2 .play, #app.rumble .info, #app.rumble .play { animation: none; }
+  #app[data-stage="4"] #bg, #app.rumble #bg, .r3 .rn, .ev.r3 b { animation: none; }
+  #flash.go { animation: none; }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  #app { flex-direction: row; justify-content: center; }
+  .info, .play { max-width: none; width: 50%; height: 100%; }
+  .play { padding-top: 10px; }
+  .padwrap { width: min(42vw, 62vh, 300px); }
+  #active { max-height: 70px; }
+  #toast { top: 96px; }
+}
+</style>
+</head>
+<body>
+<div id="app" data-stage="0">
+  <div id="bg"></div>
+  <div id="flash"></div>
+  <canvas id="fx"></canvas>
+  <div id="floats"></div>
+
+  <div class="info">
+    <div class="top">
+      <div class="lvl"><small>LEVEL</small><b id="lv">1</b></div>
+      <div class="xpwrap">
+        <div class="stage" id="stage">NORMAL</div>
+        <div class="xpbar"><i id="xpfill"></i></div>
+      </div>
+    </div>
+    <p class="title">ポチポンキチ∞ポチポチ</p>
+    <div class="count"><div id="count">0</div></div>
+    <div class="stats">
+      <div class="chip combo"><span>COMBO</span><b id="combo">0</b><em id="maxcombo">最大 0</em></div>
+      <div class="chip"><span>最高記録</span><b id="best">0</b><em>&nbsp;</em></div>
+      <div class="chip"><span>ポチ/秒</span><b id="pps">0</b><em>&nbsp;</em></div>
+      <div class="chip mult"><span>倍率</span><b id="mult">×1</b><em>&nbsp;</em></div>
+    </div>
+  </div>
+
+  <div class="play">
+    <div class="padwrap">
+      <div class="ring" id="ring"></div>
+      <button id="pon" type="button" aria-label="ポン!">ポン!</button>
+    </div>
+    <div id="active" aria-live="polite"></div>
+    <div class="toggles">
+      <button class="tg" id="auto" type="button" aria-pressed="false">AUTO</button>
+      <button class="tg" id="turbo" type="button" aria-pressed="false">TURBO</button>
+      <button class="tg" id="snd" type="button" aria-pressed="true">音 ON</button>
+    </div>
+  </div>
+
+  <div id="banner"><span class="rl"></span><span class="rn"></span><span class="rs"></span></div>
+  <div id="toast"></div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const STAGES = [
+    { n: 'NORMAL', m: 1, lv: 1 },
+    { n: 'SUPER', m: 2, lv: 5 },
+    { n: 'SUPER SUPER', m: 5, lv: 10 },
+    { n: 'OVERDRIVE', m: 12, lv: 17 },
+    { n: '∞ ULTIMATE CHAOS', m: 40, lv: 25 }
+  ];
+  const RAR = ['通常', 'レア', '超レア', '究極'];
+  const EVENTS = [
+    { id: 'ghost',   name: 'ゴーストポン',      r: 0, dur: 8,  ghost: 6, sub: 'ゲームが勝手に連打中!' },
+    { id: 'shower',  name: 'ポンポンシャワー',  r: 0, instant: 'shower', sub: '数字が降ってきた!' },
+    { id: 'thunder', name: '雷速覚醒',          r: 1, dur: 10, mult: 4, ghost: 4, sub: '倍率アップ & 連打加速!' },
+    { id: 'drop',    name: 'CHAOS DROP',        r: 1, instant: 'drop', sub: '大量の数字が降ってきた!!' },
+    { id: 'ss',      name: 'SUPER SUPER EVENT', r: 2, dur: 12, mult: 25, sub: '超高倍率タイム!!' },
+    { id: 'chaos',   name: 'CHAOS',             r: 2, dur: 12, chaos: [1, 80], ghost: 3, sub: '倍率が暴走中!!' },
+    { id: 'ult',     name: 'ULTIMATE CHAOS',    r: 3, dur: 16, chaos: [40, 800], ghost: 20, drops: true, sub: 'すべてが崩壊する!!!' }
+  ];
+  const WEIGHTS = [
+    [60, 26, 11, 3],
+    [52, 28, 15, 5],
+    [44, 28, 19, 9],
+    [34, 28, 24, 14],
+    [24, 26, 28, 22]
+  ];
+  const SPECIALS = [
+    { v: 777n,        name: 'ラッキーセブン!',          r: 1 },
+    { v: 999n,        name: 'スリーナイン!',            r: 0 },
+    { v: 1111n,       name: 'ゾロ目ポン!',              r: 1 },
+    { v: 1234n,       name: 'ワン・ツー・スリー・フォー!', r: 1 },
+    { v: 7777n,       name: 'ダブルラッキーセブン!!',    r: 2 },
+    { v: 9999n,       name: 'ナインナイン!!',           r: 2 },
+    { v: 10000n,      name: '1万ポン達成!!!',           r: 2 },
+    { v: 77777n,      name: 'トリプルセブン!!!',         r: 2 },
+    { v: 99999n,      name: 'あと1で10万!!!',           r: 2 },
+    { v: 100000n,     name: '10万ポン!!!',              r: 3 },
+    { v: 777777n,     name: 'セブンセブンセブン!!!!',    r: 3 },
+    { v: 1000000n,    name: '100万ポン!!!!',            r: 3 },
+    { v: 7777777n,    name: '777万ポン!!!!',            r: 3 },
+    { v: 10000000n,   name: '1000万ポン!!!!',           r: 3 },
+    { v: 100000000n,  name: '1億ポン!!!!!',             r: 3 }
+  ];
+  const COMBO_WINDOW = 1.2;
+  const COLORS = ['#ff3d8b', '#ffe13a', '#2ee6d6', '#8a5bff', '#ffffff'];
+  const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const S = { count: 0n, best: 0n, level: 1, xp: 0, combo: 0, maxCombo: 0, started: false };
+  let now = performance.now() / 1000;
+  let lastComboAt = 0;
+  let nextEventAt = Infinity;
+  let specialIdx = 0;
+  let autoOn = false, turboOn = false, muted = false;
+  let ghostAcc = 0, autoAcc = 0;
+  const active = [];
+  const tapTimes = [];
+  let bestSaved = 0n;
+  let tapCounter = 0;
+
+  try {
+    const b = localStorage.getItem('pochi_best');
+    if (b && /^\d+$/.test(b)) { S.best = BigInt(b); bestSaved = S.best; }
+  } catch (e) { /* 保存できない環境でも遊べる */ }
+
+  const $ = (id) => document.getElementById(id);
+  const app = $('app'), cntEl = $('count'), lvEl = $('lv'), stageEl = $('stage'), xpFill = $('xpfill');
+  const comboEl = $('combo'), maxComboEl = $('maxcombo'), bestEl = $('best'), ppsEl = $('pps'), multEl = $('mult');
+  const ring = $('ring'), pon = $('pon'), activeEl = $('active'), floats = $('floats');
+  const banner = $('banner'), toast = $('toast'), flash = $('flash');
+  const autoBtn = $('auto'), turboBtn = $('turbo'), sndBtn = $('snd');
+  const canvas = $('fx'), ctx = canvas.getContext('2d');
+
+  const fmt = (n) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const stageIdx = () => { const L = S.level; return L >= 25 ? 4 : L >= 17 ? 3 : L >= 10 ? 2 : L >= 5 ? 1 : 0; };
+  const needXp = () => 10 + S.level * S.level * 3;
+
+  function eventMult() {
+    let m = 1;
+    for (const e of active) m *= e.cur;
+    return Math.min(m, 1e7);
+  }
+  function totalMult() {
+    return STAGES[stageIdx()].m * (1 + S.level * 0.05) * (1 + Math.min(S.combo, 300) / 15) * eventMult();
+  }
+  function fmtMult(m) {
+    if (m < 10) return '×' + m.toFixed(1);
+    if (m < 1e6) return '×' + fmt(BigInt(Math.floor(m)));
+    return '×' + (m / 1e6).toFixed(1) + 'M';
+  }
+
+  let ac = null;
+  function ensureAudio() {
+    if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } }
+    if (ac && ac.state === 'suspended') ac.resume();
+  }
+  function tone(f, d, type, v, delay) {
+    if (muted || !ac) return;
+    const t = ac.currentTime + (delay || 0);
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(v, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g); g.connect(ac.destination);
+    o.start(t); o.stop(t + d + 0.02);
+  }
+  function jingle(r) {
+    const base = [523, 659, 784, 1047, 1319, 1568];
+    const n = 3 + r * 2;
+    for (let i = 0; i < n; i++) tone(base[i % base.length] * (i >= base.length ? 2 : 1), 0.18, r >= 2 ? 'sawtooth' : 'triangle', 0.06, i * 0.07);
+  }
+
+  const P = [];
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(window.innerWidth * dpr);
+    canvas.height = Math.floor(window.innerHeight * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    fitCount(true);
+  }
+  function burst(x, y, n, power) {
+    if (REDUCED) n = Math.ceil(n / 4);
+    const pw = power || 1;
+    for (let i = 0; i < n && P.length < 600; i++) {
+      const a = Math.random() * Math.PI * 2, s = (80 + Math.random() * 320) * pw;
+      P.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 120, life: 0, max: 0.6 + Math.random() * 0.7,
+               c: COLORS[(Math.random() * COLORS.length) | 0], r: 3 + Math.random() * 6 });
+    }
+  }
+  function rain(n) {
+    if (REDUCED) n = Math.ceil(n / 4);
+    for (let i = 0; i < n && P.length < 600; i++) {
+      P.push({ x: Math.random() * window.innerWidth, y: -10, vx: rand(-40, 40), vy: rand(200, 520), life: 0, max: 2.2,
+               c: COLORS[(Math.random() * COLORS.length) | 0], r: 4 + Math.random() * 7 });
+    }
+  }
+  function drawFx(dt) {
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    for (let i = P.length - 1; i >= 0; i--) {
+      const p = P[i];
+      p.life += dt;
+      if (p.life >= p.max) { P.splice(i, 1); continue; }
+      p.vy += 700 * dt;
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      ctx.globalAlpha = 1 - p.life / p.max;
+      ctx.fillStyle = p.c;
+      ctx.fillRect(p.x, p.y, p.r, p.r);
+    }
+    ctx.globalAlpha = 1;
+  }
+  let floaters = 0;
+  function floatText(x, y, text, cls) {
+    if (floaters > 45) return;
+    floaters++;
+    const d = document.createElement('div');
+    d.className = 'float ' + (cls || '');
+    d.textContent = text;
+    d.style.left = x + 'px'; d.style.top = y + 'px';
+    d.style.setProperty('--dx', (Math.random() * 70 - 35) + 'px');
+    floats.appendChild(d);
+    let done = false;
+    const rm = () => { if (!done) { done = true; floaters--; d.remove(); } };
+    d.addEventListener('animationend', rm);
+    setTimeout(rm, 2000);
+  }
+  function restart(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+  function doShake(level) {
+    if (REDUCED) return;
+    const c = level >= 2 ? 'shake2' : 'shake1';
+    app.classList.remove('shake1', 'shake2');
+    void app.offsetWidth;
+    app.classList.add(c);
+    setTimeout(() => app.classList.remove(c), level >= 2 ? 520 : 320);
+  }
+  function showBanner(label, name, sub, r) {
+    banner.className = 'r' + r;
+    banner.querySelector('.rl').textContent = label;
+    banner.querySelector('.rn').textContent = name;
+    banner.querySelector('.rs').textContent = sub || '';
+    restart(banner, 'show');
+  }
+  function showToast(text) { toast.textContent = text; restart(toast, 'show'); }
+  function flashScreen() { if (!REDUCED) restart(flash, 'go'); }
+  function center() {
+    const r = pon.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  }
+
+  function addCount(g) {
+    S.count += g;
+    if (S.count > S.best) S.best = S.count;
+    checkSpecials();
+  }
+
+  let inSpecial = false;
+  function checkSpecials() {
+    if (inSpecial) return;
+    inSpecial = true;
+    while (true) {
+      if (specialIdx >= SPECIALS.length) {
+        const nv = SPECIALS[SPECIALS.length - 1].v * 10n;
+        SPECIALS.push({ v: nv, name: nv.toString().length + '桁突破!!!!!', r: 3 });
+      }
+      const sp = SPECIALS[specialIdx];
+      if (S.count < sp.v) break;
+      specialIdx++;
+      triggerSpecial(sp);
+    }
+    inSpecial = false;
+  }
+  function triggerSpecial(sp) {
+    const bonus = sp.v / 2n + 100n;
+    S.count += bonus;
+    if (S.count > S.best) S.best = S.count;
+    showBanner(fmt(sp.v) + ' 到達!', sp.name, 'ボーナス +' + fmt(bonus) + ' & ボーナスタイム ×5', sp.r);
+    startEvent({ id: 'bonus', name: 'ボーナスタイム', r: sp.r, dur: 6, mult: 5 }, true);
+    const c = center();
+    floatText(c.x, c.y - 60, '+' + fmt(bonus), 'big');
+    burst(c.x, c.y, 60 + sp.r * 30, 1.2);
+    if (sp.r >= 1) flashScreen();
+    doShake(sp.r >= 2 ? 2 : 1);
+    jingle(sp.r);
+  }
+
+  function doTap(src, px, py) {
+    const m = totalMult();
+    const gain = BigInt(Math.max(1, Math.floor(m)));
+    addCount(gain);
+
+    if (src === 'player' || src === 'ghost') {
+      S.combo++;
+      lastComboAt = now;
+      if (S.combo > S.maxCombo) S.maxCombo = S.combo;
+      if (src === 'player' && [10, 25, 50, 100, 200, 300, 500, 1000].includes(S.combo)) {
+        showToast('COMBO ' + S.combo + '!');
+        const c = center(); burst(c.x, c.y, 30, 0.9);
+      }
+    }
+    S.xp += src === 'player' ? 1 + S.combo * 0.08 : 1 + S.combo * 0.04;
+    while (S.xp >= needXp()) { S.xp -= needXp(); S.level++; onLevelUp(); }
+
+    tapTimes.push(now);
+    tapCounter++;
+
+    let x = px, y = py;
+    if (src !== 'player') {
+      const c = center();
+      x = c.x + rand(-90, 90); y = c.y + rand(-90, 60);
+    }
+    if (src === 'player' || tapCounter % 2 === 0) floatText(x, y - 20, '+' + fmt(gain));
+    if (src === 'player') burst(x, y, 6, 0.6);
+    pon.animate([{ transform: 'scale(.93) translateY(6px)' }, { transform: 'scale(1)' }], { duration: 90 });
+    if (src === 'player' || tapCounter % 3 === 0) {
+      tone(260 + Math.min(S.combo, 80) * 9, 0.07, 'square', src === 'player' ? 0.035 : 0.02);
+    }
+    cntEl.classList.remove('bump'); void cntEl.offsetWidth; cntEl.classList.add('bump');
+  }
+
+  function onLevelUp() {
+    const si = stageIdx();
+    const stageChanged = STAGES[si].lv === S.level;
+    const c = center();
+    if (stageChanged) {
+      app.dataset.stage = si;
+      showBanner('STAGE UP!', STAGES[si].n, 'パワーアップ! 基本倍率 ×' + STAGES[si].m, si >= 4 ? 3 : 2);
+      burst(c.x, c.y, 120, 1.5);
+      flashScreen(); doShake(2); jingle(si >= 4 ? 3 : 2);
+    } else {
+      showToast('LEVEL UP! Lv.' + S.level);
+      burst(c.x, c.y, 40, 1);
+      jingle(0);
+    }
+  }
+
+  function pickEvent() {
+    const w = WEIGHTS[stageIdx()];
+    let roll = Math.random() * w.reduce((a, b) => a + b, 0), r = 0;
+    for (; r < w.length; r++) { roll -= w[r]; if (roll < 0) break; }
+    r = Math.min(r, 3);
+    const pool = EVENTS.filter((e) => e.r === r);
+    return pool[(Math.random() * pool.length) | 0];
+  }
+
+  function bigDrop(div, k) {
+    const gain = S.count / div + BigInt(Math.floor(totalMult() * k));
+    addCount(gain);
+    return gain;
+  }
+
+  function startEvent(def, silent) {
+    if (!silent) {
+      showBanner(RAR[def.r] + 'イベント', def.name, def.sub, def.r);
+      jingle(def.r);
+      if (def.r >= 1) flashScreen();
+      doShake(def.r >= 2 ? 2 : 1);
+    }
+    const c = center();
+    if (def.instant === 'shower') {
+      const gain = BigInt(Math.floor(totalMult() * rand(15, 40)));
+      addCount(gain);
+      rain(60);
+      floatText(c.x, c.y - 70, '+' + fmt(gain), 'big');
+      return;
+    }
+    if (def.instant === 'drop') {
+      const gain = bigDrop(10n, rand(100, 300));
+      rain(140); burst(c.x, c.y, 100, 1.4);
+      floatText(c.x, c.y - 70, '+' + fmt(gain), 'big');
+      return;
+    }
+    burst(c.x, c.y, 50 + def.r * 25, 1.1);
+    const existing = active.find((e) => e.def.id === def.id);
+    if (existing) { existing.end = now + def.dur; existing.total = def.dur; return; }
+    const e = { def, end: now + def.dur, total: def.dur, cur: def.mult || (def.chaos ? def.chaos[0] : 1), nextChange: 0, nextDrop: now + 1.2, el: null };
+    e.el = document.createElement('div');
+    e.el.className = 'ev r' + def.r;
+    e.el.innerHTML = '<b></b><span></span><i></i>';
+    e.el.querySelector('b').textContent = def.name;
+    activeEl.appendChild(e.el);
+    e.label = e.el.querySelector('span');
+    e.bar = e.el.querySelector('i');
+    active.push(e);
+  }
+
+  function tick(dt) {
+    let ghostRate = 0, ult = false;
+    for (let i = active.length - 1; i >= 0; i--) {
+      const e = active[i];
+      if (now >= e.end) { e.el.remove(); active.splice(i, 1); continue; }
+      if (e.def.chaos && now >= e.nextChange) {
+        const lo = e.def.chaos[0], hi = e.def.chaos[1];
+        e.cur = lo * Math.pow(hi / lo, Math.random());
+        e.nextChange = now + rand(0.3, 0.6);
+      }
+      if (e.def.drops) {
+        ult = true;
+        if (now >= e.nextDrop) {
+          e.nextDrop = now + 1.3;
+          const g = bigDrop(60n, 50);
+          const c = center();
+          floatText(c.x + rand(-80, 80), c.y - 80, '+' + fmt(g), 'big');
+          rain(25);
+        }
+      }
+      ghostRate += e.def.ghost || 0;
+    }
+    app.classList.toggle('rumble', ult && !REDUCED);
+    pon.classList.toggle('hot', active.length > 0);
+
+    ghostAcc += ghostRate * dt;
+    for (let n = 0; ghostAcc >= 1 && n < 6; n++) { ghostAcc -= 1; doTap('ghost'); }
+    if (ghostAcc > 6) ghostAcc = 0;
+
+    const autoRate = turboOn ? 10 : autoOn ? 2 : 0;
+    autoAcc += autoRate * dt;
+    for (let n = 0; autoAcc >= 1 && n < 4; n++) { autoAcc -= 1; doTap('auto'); }
+    if (autoAcc > 4) autoAcc = 0;
+
+    if (S.combo > 0 && now - lastComboAt > COMBO_WINDOW) S.combo = 0;
+
+    while (tapTimes.length && now - tapTimes[0] > 1) tapTimes.shift();
+
+    if (S.started && now >= nextEventAt) {
+      startEvent(pickEvent());
+      nextEventAt = now + rand(6, 13) * (1 - 0.1 * stageIdx());
+    }
+  }
+
+  const cache = {};
+  function setText(key, el, val) { if (cache[key] !== val) { cache[key] = val; el.textContent = val; } }
+
+  function fitCount(force) {
+    const s = cntEl.textContent;
+    if (!force && cache.fit === s) return;
+    cache.fit = s;
+    const digits = s.replace(/,/g, '').length, commas = s.length - digits;
+    const W = (cntEl.parentElement.clientWidth || 320) - 16;
+    const fs = Math.max(22, Math.min(112, W / (digits * 0.64 + commas * 0.36 + 0.2)));
+    cntEl.style.fontSize = fs + 'px';
+  }
+  function fitChip(el) {
+    const L = el.textContent.length;
+    el.style.fontSize = L <= 6 ? '20px' : L <= 9 ? '15px' : L <= 13 ? '11px' : '9px';
+  }
+
+  function render() {
+    setText('count', cntEl, fmt(S.count));
+    fitCount(false);
+    setText('lv', lvEl, String(S.level));
+    setText('stage', stageEl, STAGES[stageIdx()].n);
+    xpFill.style.width = Math.min(100, (S.xp / needXp()) * 100) + '%';
+    setText('combo', comboEl, String(S.combo));
+    setText('maxcombo', maxComboEl, '最大 ' + S.maxCombo);
+    setText('best', bestEl, fmt(S.best)); fitChip(bestEl);
+    setText('pps', ppsEl, String(tapTimes.length));
+    setText('mult', multEl, fmtMult(totalMult())); fitChip(multEl);
+    const p = S.combo > 0 ? Math.max(0, 1 - (now - lastComboAt) / COMBO_WINDOW) * 100 : 0;
+    ring.style.setProperty('--p', p.toFixed(1));
+    for (const e of active) {
+      e.bar.style.transform = 'scaleX(' + Math.max(0, (e.end - now) / e.total).toFixed(3) + ')';
+      e.label.textContent = e.def.chaos ? fmtMult(e.cur) : e.def.mult ? '×' + e.def.mult : '自動連打 ' + (e.def.ghost || 0) + '/秒';
+    }
+  }
+
+  let last = now;
+  function frame(ts) {
+    now = ts / 1000;
+    const dt = Math.min(0.1, Math.max(0, now - last));
+    last = now;
+    tick(dt);
+    render();
+    drawFx(dt);
+    requestAnimationFrame(frame);
+  }
+
+  function startIfNeeded() {
+    if (!S.started) { S.started = true; nextEventAt = now + 5; }
+  }
+  pon.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    ensureAudio();
+    startIfNeeded();
+    doTap('player', e.clientX, e.clientY);
+  });
+  document.addEventListener('keydown', (e) => {
+    if ((e.code === 'Space' || e.code === 'Enter') && !(e.target && e.target.classList && e.target.classList.contains('tg'))) {
+      e.preventDefault();
+      ensureAudio();
+      startIfNeeded();
+      const c = center();
+      doTap('player', c.x + rand(-40, 40), c.y);
+    }
+  });
+
+  function setPressed(btn, v) { btn.setAttribute('aria-pressed', v ? 'true' : 'false'); }
+  autoBtn.addEventListener('click', () => {
+    ensureAudio(); startIfNeeded();
+    autoOn = !autoOn; if (autoOn) turboOn = false;
+    setPressed(autoBtn, autoOn); setPressed(turboBtn, turboOn);
+  });
+  turboBtn.addEventListener('click', () => {
+    ensureAudio(); startIfNeeded();
+    turboOn = !turboOn; if (turboOn) autoOn = false;
+    setPressed(autoBtn, autoOn); setPressed(turboBtn, turboOn);
+  });
+  sndBtn.addEventListener('click', () => {
+    ensureAudio();
+    muted = !muted;
+    setPressed(sndBtn, !muted);
+    sndBtn.textContent = muted ? '音 OFF' : '音 ON';
+  });
+
+  document.addEventListener('contextmenu', (e) => e.preventDefault());
+  document.addEventListener('gesturestart', (e) => e.preventDefault());
+  document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+  window.addEventListener('resize', resize);
+
+  setInterval(() => {
+    if (S.best !== bestSaved) {
+      try { localStorage.setItem('pochi_best', S.best.toString()); } catch (e) { /* 保存不可でも続行 */ }
+      bestSaved = S.best;
+    }
+  }, 2000);
+
+  resize();
+  showToast('ポン! を連打しよう!');
+  requestAnimationFrame((ts) => { now = ts / 1000; last = now; frame(ts); });
+})();
+</script>
+</body>
+</html>
